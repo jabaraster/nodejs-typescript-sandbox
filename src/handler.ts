@@ -1,6 +1,6 @@
 import  AWS = require('aws-sdk');
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
-import { HttpStatusCode, HttpStatusCodes } from './http-response';
+import { HttpStatusCodes } from './http-response';
 import { FirstTableRecord } from './types';
 
 import { response, firstTableName, newId } from './util';

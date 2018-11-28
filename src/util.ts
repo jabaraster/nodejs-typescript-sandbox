@@ -1,4 +1,4 @@
-import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
+import { Callback } from 'aws-lambda';
 import { HttpStatusCode } from './http-response';
 import { v4 } from 'uuid';
 
