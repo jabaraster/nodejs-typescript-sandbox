@@ -18,5 +18,7 @@ export class HttpStatusCode {
 export const HttpStatusCodes = {
   OK: new HttpStatusCode(200, "OK"),
   Created: new HttpStatusCode(201, "Created"),
-  BadRequest: new HttpStatusCode(401, "BadRequest")
+
+  BadRequest: new HttpStatusCode(401, "BadRequest"),
+  InternalServerError: new HttpStatusCode(500, "InternalServerError")
 }

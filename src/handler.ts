@@ -1,9 +1,17 @@
+import  AWS = require('aws-sdk');
 import { APIGatewayEvent, Callback, Context, Handler } from 'aws-lambda';
 import { HttpStatusCode, HttpStatusCodes } from './http-response';
+import { FirstTableRecord } from './types';
+
+import { response, firstTableName, newId } from './util';
+
+AWS.config.update({ region: 'ap-northeast-1' });
+
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 interface PostData {
-  key: string;
   name: string;
+  option: any;
 }
 
 export const post: Handler = (event: APIGatewayEvent, context: Context, cb: Callback | undefined) => {
@@ -25,10 +33,55 @@ export const hello: Handler = (event: APIGatewayEvent, context: Context, cb: Cal
   });
 }
 
-function response(cb: Callback | undefined, statusCode: HttpStatusCode, body: any | null) {
-  if (!cb) throw new Error(`callback is undefined.`);
-  cb(null, {
-    statusCode: statusCode.code(),
-    body: body ? JSON.stringify(body) : null
+export const getData: Handler = (event: APIGatewayEvent, context: Context, cb: Callback | undefined) => {
+  dynamodb.scan({
+    TableName: firstTableName(event.requestContext.stage)
+  }, (err, data) => {
+    if (err) {
+      response(cb, HttpStatusCodes.InternalServerError, err);
+      return;
+    }
+    if (!data.Items) {
+      response(cb, HttpStatusCodes.InternalServerError, data);
+      return;
+    }
+    response(cb, HttpStatusCodes.OK, {
+      data: data.Items!!.map(resToRec),
+      original: data
+    });
+  });
+}
+function resToRec(attr: AWS.DynamoDB.DocumentClient.AttributeMap): FirstTableRecord {
+  return {
+    id: attr["id"] as string,
+    name: attr["name"] as string
+  };
+}
+
+export const postData: Handler = (event: APIGatewayEvent, context: Context, cb: Callback | undefined) => {
+  if (event.body == null) {
+    response(cb, HttpStatusCodes.BadRequest, {message: 'body is null.'});
+    return;
+  }
+  const req: PostData = JSON.parse(event.body!!);
+  if (!req.name) {
+    response(cb, HttpStatusCodes.BadRequest, {message: 'property "name" is required.'});
+    return;
+  }
+  const newRecord = {
+    TableName: firstTableName(event.requestContext.stage),
+    Item: {
+      id: newId(),
+      name: req.name,
+      option: req.option
+    }
+  };
+  dynamodb.put(newRecord, (err, data) => {
+    if (err) {
+      console.log(err);
+      response(cb, HttpStatusCodes.InternalServerError, err);
+      return;
+    }
+    response(cb, HttpStatusCodes.Created, newRecord.Item);
   });
 }

@@ -8,15 +8,15 @@ plugins:
 provider:
   name: aws
   runtime: nodejs6.10
+  timeout: 30
   region: ap-northeast-1
-  memorySize: 128M
+  memorySize: 256
 
   iamRoleStatements:
   - Effect: Allow
     Action:
     - dynamodb:*
     Resource:
-        # - Fn::GetAtt: [ FirstTable, Arn ]
     - "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/*"
 
 functions:
@@ -32,3 +32,15 @@ functions:
       - http:
           method: post
           path: hello
+  getData:
+    handler: build/handler.getData
+    events:
+      - http:
+          method: get
+          path: data
+  postData:
+    handler: build/handler.postData
+    events:
+      - http:
+          method: post
+          path: data
