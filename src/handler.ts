@@ -19,7 +19,6 @@ export const post: Handler = (event: APIGatewayEvent, context: Context, cb: Call
     response(cb, HttpStatusCodes.BadRequest, {});
     return;
   }
-  const req: PostData = JSON.parse(event.body!!);
   response(cb, HttpStatusCodes.OK, {
     message: "post request accepted.",
     body: event.body
